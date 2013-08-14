@@ -33,7 +33,57 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicity call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
+        var contentsDiv    = document.getElementById('fileContentsDiv'),
+            getContentsBtn = document.getElementById('getFileContents'),
+            setContentsBtn = document.getElementById('setFileContents');
+        
+        //Set file contents
+        setContentsBtn.addEventListener('click', function() {
+            
+            // Create a Date string. It will look something like: "2013-08-13T22:04:58.811Z"
+            var dateStr = new Date().toJSON();
+            
+            // Ask cordova to execute a method on our FileWriter class
+            cordova.exec(
+                // Register the callback handler
+                function callback(data) {
+                    contentsDiv.innerHTML = 'File contents set.';
+                    console.log('Wrote date ' + dateStr);
+                },
+                // Register the errorHandler
+                function errorHandler(err) {
+                    alert('Error');
+                },
+                // Define what class to route messages to
+                'FileWriter',
+                // Execute this method on the above class
+                'cordovaSetFileContents',
+                // An array containing one String (our newly created Date String).
+                [ dateStr ]
+            );
+
+        });
+        
+        //Get file contents
+        getContentsBtn.addEventListener('click', function() {
+                   
+            cordova.exec(
+                function callback(data) {
+                    // data comes from the NSDictionary instance (jsonObj) from our Objective C code.
+                    // Take a look at the cordovaGetFileContents method from FileWriter.m and you'll see
+                    // where we add dateStr as a property to that Dictionary object.
+                    var msg = 'Current file contents: <br />' + data.dateStr;
+                    contentsDiv.innerHTML = msg;
+                },
+                function errorHandler(err) {
+                    alert('Error');
+                },
+                'FileWriter',
+                'cordovaGetFileContents',
+                [  ] // No arguments, just an empty array
+            );
+        });
+
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
